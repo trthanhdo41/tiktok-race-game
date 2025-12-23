@@ -26,48 +26,29 @@ const giftImages = {
   'Thương': 'images/6.webp'
 };
 
-// Kiểm tra môi trường - dùng WebSocket cho local, SSE cho production
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+// Luôn dùng WebSocket (cho cả local và production)
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
-if (isLocal) {
-  // WebSocket cho local
-  const ws = new WebSocket(`ws://${window.location.host}`);
-  
-  ws.onopen = () => {
-    console.log('Connected to server');
-  };
-  
-  ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    handleMessage(data);
-  };
-  
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
-  };
-  
-  ws.onclose = () => {
-    console.log('Disconnected from server');
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
-  };
-} else {
-  // SSE cho production (Vercel)
-  const eventSource = new EventSource('/api/events');
-  
-  eventSource.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    handleMessage(data);
-  };
-  
-  eventSource.onerror = (error) => {
-    console.error('SSE error:', error);
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
-  };
-}
+ws.onopen = () => {
+  console.log('Connected to server');
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  handleMessage(data);
+};
+
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
+
+ws.onclose = () => {
+  console.log('Disconnected from server');
+  setTimeout(() => {
+    window.location.reload();
+  }, 3000);
+};
 
 function handleMessage(data) {
   if (data.type === 'init') {

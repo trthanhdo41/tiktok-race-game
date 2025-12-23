@@ -1,26 +1,22 @@
 let selectedTeam = null;
 let selectedGift = null;
 
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-let ws;
+// Luôn dùng WebSocket (cho cả local và production)
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
-if (isLocal) {
-  // WebSocket cho local
-  ws = new WebSocket(`ws://${window.location.host}`);
-  
-  ws.onopen = () => {
-    console.log('Connected to server');
-  };
-  
-  ws.onerror = () => {
-    console.log('WebSocket error');
-  };
-  
-  ws.onclose = () => {
-    console.log('Disconnected');
-    setTimeout(() => window.location.reload(), 3000);
-  };
-}
+ws.onopen = () => {
+  console.log('Connected to server');
+};
+
+ws.onerror = () => {
+  console.log('WebSocket error');
+};
+
+ws.onclose = () => {
+  console.log('Disconnected');
+  setTimeout(() => window.location.reload(), 3000);
+};
 
 // Chọn đội
 document.querySelectorAll('.team-btn').forEach(btn => {
@@ -42,7 +38,7 @@ document.querySelectorAll('.gift-btn').forEach(btn => {
   });
 });
 
-async function sendGift() {
+function sendGift() {
   if (!selectedTeam) {
     showStatus('Vui lòng chọn đội!', 'error');
     return;
@@ -53,60 +49,20 @@ async function sendGift() {
     return;
   }
   
-  if (isLocal) {
-    // WebSocket cho local
-    const data = {
-      type: 'gift',
-      team: selectedTeam,
-      giftName: selectedGift.name,
-      value: selectedGift.value
-    };
-    ws.send(JSON.stringify(data));
-    showStatus(`✅ Đã gửi ${selectedGift.name} (+${selectedGift.value}) cho ${selectedTeam.toUpperCase()}`, 'success');
-  } else {
-    // API cho production
-    try {
-      const response = await fetch('/api/gift', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          team: selectedTeam,
-          giftName: selectedGift.name,
-          value: selectedGift.value
-        })
-      });
-      
-      if (response.ok) {
-        showStatus(`✅ Đã gửi ${selectedGift.name} (+${selectedGift.value}) cho ${selectedTeam.toUpperCase()}`, 'success');
-      } else {
-        showStatus('Lỗi khi gửi quà!', 'error');
-      }
-    } catch (error) {
-      showStatus('Lỗi kết nối!', 'error');
-    }
-  }
+  const data = {
+    type: 'gift',
+    team: selectedTeam,
+    giftName: selectedGift.name,
+    value: selectedGift.value
+  };
+  ws.send(JSON.stringify(data));
+  showStatus(`✅ Đã gửi ${selectedGift.name} (+${selectedGift.value}) cho ${selectedTeam.toUpperCase()}`, 'success');
 }
 
-async function resetGame() {
+function resetGame() {
   if (confirm('Bạn có chắc muốn reset game?')) {
-    if (isLocal) {
-      // WebSocket cho local
-      ws.send(JSON.stringify({ type: 'reset' }));
-      showStatus('Game đã được reset!', 'success');
-    } else {
-      // API cho production
-      try {
-        const response = await fetch('/api/reset', {
-          method: 'POST'
-        });
-        
-        if (response.ok) {
-          showStatus('Game đã được reset!', 'success');
-        }
-      } catch (error) {
-        showStatus('Lỗi khi reset!', 'error');
-      }
-    }
+    ws.send(JSON.stringify({ type: 'reset' }));
+    showStatus('Game đã được reset!', 'success');
   }
 }
 
