@@ -62,17 +62,30 @@ wss.on('connection', (ws) => {
               team: data.team,
               wins: wins[data.team]
             });
+            
+            // Reset điểm về 0 sau 3 giây để bắt đầu vòng mới
+            setTimeout(() => {
+              scores[data.team] = 0;
+              broadcast({
+                type: 'update',
+                team: data.team,
+                value: 0,
+                total: 0,
+                giftName: '',
+                username: ''
+              });
+            }, 3000);
+          } else {
+            // Broadcast cập nhật điểm bình thường
+            broadcast({
+              type: 'update',
+              team: data.team,
+              value: data.value,
+              total: scores[data.team],
+              giftName: data.giftName,
+              username: data.username
+            });
           }
-          
-          // Broadcast cập nhật điểm
-          broadcast({
-            type: 'update',
-            team: data.team,
-            value: data.value,
-            total: scores[data.team],
-            giftName: data.giftName,
-            username: data.username
-          });
         }
       } else if (data.type === 'reset') {
         // Reset tất cả điểm và số lần thắng
