@@ -52,8 +52,8 @@ wss.on('connection', (ws) => {
         if (scores.hasOwnProperty(data.team)) {
           scores[data.team] += data.value;
           
-          // Kiểm tra nếu về đích (>= 30)
-          if (scores[data.team] >= 30) {
+          // Kiểm tra nếu về đích (>= 30) và chưa được tính thắng
+          if (scores[data.team] >= 30 && scores[data.team] - data.value < 30) {
             wins[data.team] += 1;
             
             // Broadcast thông báo thắng
@@ -62,23 +62,17 @@ wss.on('connection', (ws) => {
               team: data.team,
               wins: wins[data.team]
             });
-            
-            // Reset điểm để bắt đầu vòng mới sau 5 giây
-            setTimeout(() => {
-              Object.keys(scores).forEach(key => scores[key] = 0);
-              broadcast({ type: 'reset', scores, wins });
-            }, 5000);
-          } else {
-            // Broadcast cập nhật điểm bình thường
-            broadcast({
-              type: 'update',
-              team: data.team,
-              value: data.value,
-              total: scores[data.team],
-              giftName: data.giftName,
-              username: data.username
-            });
           }
+          
+          // Broadcast cập nhật điểm
+          broadcast({
+            type: 'update',
+            team: data.team,
+            value: data.value,
+            total: scores[data.team],
+            giftName: data.giftName,
+            username: data.username
+          });
         }
       } else if (data.type === 'reset') {
         // Reset tất cả điểm và số lần thắng

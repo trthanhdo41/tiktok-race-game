@@ -63,6 +63,9 @@ function handleMessage(data) {
   } else if (data.type === 'winner') {
     wins[data.team] = data.wins;
     updateWins(data.team);
+    // Hiển thị celebration khi nhận message winner từ server
+    const lane = document.querySelector(`.lane[data-team="${data.team}"]`);
+    showWinnerCelebration(data.team, lane);
   } else if (data.type === 'reset') {
     Object.assign(scores, data.scores);
     Object.assign(wins, data.wins);
@@ -112,11 +115,6 @@ function updatePosition(team, giftData) {
   const position = 2 + (progress * 68); // 2% đến 70%
   
   racerContainer.style.left = position + '%';
-  
-  // Hiệu ứng khi về đích
-  if (progress >= 1) {
-    showWinnerCelebration(team, lane);
-  }
 }
 
 function updateAllPositions() {
