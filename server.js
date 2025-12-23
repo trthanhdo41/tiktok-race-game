@@ -52,39 +52,38 @@ wss.on('connection', (ws) => {
         if (scores.hasOwnProperty(data.team)) {
           scores[data.team] += data.value;
           
+          // Broadcast cập nhật điểm trước
+          broadcast({
+            type: 'update',
+            team: data.team,
+            value: data.value,
+            total: scores[data.team],
+            giftName: data.giftName,
+            username: data.username
+          });
+          
           // Kiểm tra nếu về đích (>= 30) và chưa được tính thắng
           if (scores[data.team] >= 30 && scores[data.team] - data.value < 30) {
             wins[data.team] += 1;
             
-            // Broadcast thông báo thắng
-            broadcast({
-              type: 'winner',
-              team: data.team,
-              wins: wins[data.team]
-            });
+            // Broadcast thông báo thắng sau khi racer đã di chuyển đến đích
+            setTimeout(() => {
+              broadcast({
+                type: 'winner',
+                team: data.team,
+                wins: wins[data.team]
+              });
+            }, 800);
             
             // Reset điểm về 0 sau 3 giây để bắt đầu vòng mới
             setTimeout(() => {
               scores[data.team] = 0;
               broadcast({
-                type: 'update',
+                type: 'resetTeam',
                 team: data.team,
-                value: 0,
-                total: 0,
-                giftName: '',
-                username: ''
+                total: 0
               });
-            }, 3000);
-          } else {
-            // Broadcast cập nhật điểm bình thường
-            broadcast({
-              type: 'update',
-              team: data.team,
-              value: data.value,
-              total: scores[data.team],
-              giftName: data.giftName,
-              username: data.username
-            });
+            }, 3800);
           }
         }
       } else if (data.type === 'reset') {

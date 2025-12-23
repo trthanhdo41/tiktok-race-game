@@ -66,6 +66,13 @@ function handleMessage(data) {
     // Hiển thị celebration khi nhận message winner từ server
     const lane = document.querySelector(`.lane[data-team="${data.team}"]`);
     showWinnerCelebration(data.team, lane);
+  } else if (data.type === 'resetTeam') {
+    // Reset điểm của team cụ thể về 0
+    scores[data.team] = data.total;
+    updatePosition(data.team);
+    // Xóa class winner khỏi lane của team này
+    const lane = document.querySelector(`.lane[data-team="${data.team}"]`);
+    lane.classList.remove('winner');
   } else if (data.type === 'reset') {
     Object.assign(scores, data.scores);
     Object.assign(wins, data.wins);
