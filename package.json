@@ -1,0 +1,13 @@
+{
+  "name": "tiktok-race-game",
+  "version": "1.0.0",
+  "description": "Game đua động vật với quà tặng realtime",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.14.2"
+  }
+}
